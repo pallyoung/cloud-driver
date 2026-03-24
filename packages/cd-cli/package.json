@@ -1,6 +1,6 @@
 {
   "name": "@shier-art/cd-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Single-package Cloud Driver service CLI with bundled web UI and API runtime.",
   "keywords": [
     "cloud-driver",
