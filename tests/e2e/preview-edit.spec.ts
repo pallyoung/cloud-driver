@@ -88,7 +88,6 @@ test("preview workspace and keyboard save shortcut", async ({ page }) => {
   await page.getByTestId("explorer-row-diagram-png").click();
   await expect(page.getByTestId("preview-image")).toBeVisible();
   await page.getByTestId("preview-image-zoom-in").click();
-  await page.getByTestId("preview-expand-toggle").click();
   await expect(page.getByText("Scale 125%")).toBeVisible();
   await capture(page, "11-preview-image.png");
 });

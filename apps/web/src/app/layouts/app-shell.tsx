@@ -56,16 +56,12 @@ export function AppShell() {
   }
 
   return (
-    <div className="min-h-screen px-2 py-2 sm:px-3 sm:py-3 xl:px-5 xl:py-5">
+    <div className="min-h-screen sm:px-3 sm:py-3 xl:px-5 xl:py-5">
       <div className="mx-auto max-w-[1600px]">
-        <div className="overflow-hidden rounded-[24px] border border-line-strong/70 bg-canvas/88 shadow-shell backdrop-blur">
-          <AppHeader
-            authStatus={authStatus}
-            rootsCount={roots.length}
-            runtimeReady={Boolean(settings)}
-          />
+        <div className="overflow-hidden bg-canvas/92 sm:rounded-[24px] sm:border sm:border-line-strong/70 sm:shadow-shell sm:backdrop-blur">
+          <AppHeader />
 
-          <main className="p-3 sm:p-4 xl:p-5">
+          <main className="p-2.5 sm:p-4 xl:p-5">
             <Outlet />
           </main>
         </div>

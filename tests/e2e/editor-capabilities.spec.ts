@@ -50,7 +50,7 @@ test("editor language support, formatting, and large file guidance", async ({
   await page.getByTestId("editor-save").click();
   await expect(page.getByTestId("editor-save")).toBeDisabled();
 
-  await page.getByTestId("explorer-breadcrumb-root").click();
+  await page.getByTestId("explorer-back-directory").click();
   await page.getByTestId("explorer-row-ops-yaml").click();
   await expect(page.getByTestId("editor-language")).toContainText("YAML");
   await expect(page.getByTestId("editor-format")).toHaveAttribute(
@@ -64,7 +64,7 @@ test("editor language support, formatting, and large file guidance", async ({
   await page.getByTestId("editor-save").click();
   await expect(page.getByTestId("editor-save")).toBeDisabled();
 
-  await page.getByTestId("explorer-breadcrumb-root").click();
+  await page.getByTestId("explorer-back-directory").click();
   await page.getByTestId("explorer-row-module-ts").click();
   await expect(page.getByTestId("editor-language")).toContainText("TypeScript");
   await expect(page.getByTestId("editor-format")).toHaveAttribute(
@@ -78,33 +78,33 @@ test("editor language support, formatting, and large file guidance", async ({
   await page.getByTestId("editor-save").click();
   await expect(page.getByTestId("editor-save")).toBeDisabled();
 
-  await page.getByTestId("explorer-breadcrumb-root").click();
+  await page.getByTestId("explorer-back-directory").click();
   await page.getByTestId("explorer-row-landing-html").click();
   await expect(page.getByTestId("editor-format")).toHaveAttribute(
     "aria-label",
     "Format HTML",
   );
 
-  await page.getByTestId("explorer-breadcrumb-root").click();
+  await page.getByTestId("explorer-back-directory").click();
   await page.getByTestId("explorer-row-theme-css").click();
   await expect(page.getByTestId("editor-format")).toHaveAttribute(
     "aria-label",
     "Format CSS",
   );
 
-  await page.getByTestId("explorer-breadcrumb-root").click();
+  await page.getByTestId("explorer-back-directory").click();
   await page.getByTestId("explorer-row-guide-md").click();
   await expect(page.getByTestId("editor-format")).toHaveAttribute(
     "aria-label",
     "Format Markdown",
   );
 
-  await page.getByTestId("explorer-breadcrumb-root").click();
+  await page.getByTestId("explorer-back-directory").click();
   await page.getByTestId("explorer-row-deploy-sh").click();
   await expect(page.getByTestId("editor-language")).toContainText("Shell");
   await expect(page.getByTestId("editor-format")).toHaveCount(0);
 
-  await page.getByTestId("explorer-breadcrumb-root").click();
+  await page.getByTestId("explorer-back-directory").click();
   await page.getByTestId("explorer-row-oversized-log").click();
   await expect(page.getByTestId("detail-mode-edit")).toBeDisabled();
   await expect(page.getByText("too large for browser editing")).toBeVisible();

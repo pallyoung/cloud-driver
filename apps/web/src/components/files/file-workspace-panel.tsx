@@ -2,15 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { FileItem } from "@cloud-driver/shared";
 import clsx from "clsx";
 import { Sparkles, WrapText } from "lucide-react";
-import {
-  ArrowCounterClockwise,
-  ArrowSquareOut,
-  ArrowsIn,
-  ArrowsOut,
-  DownloadSimple,
-  MagnifyingGlassMinus,
-  MagnifyingGlassPlus,
-} from "@phosphor-icons/react";
+import { ArrowCounterClockwise } from "@phosphor-icons/react";
 import {
   CodeEditor,
   canFormatInBrowser,
@@ -19,7 +11,7 @@ import {
   getEditorFormatLabel,
   getEditorLanguageLabel,
 } from "./code-editor";
-import { getDownloadUrl, getPreviewUrl } from "../../lib/api/client";
+import { getPreviewUrl } from "../../lib/api/client";
 import { useI18n } from "../../hooks/use-i18n";
 
 export type DetailMode = "details" | "preview" | "edit";
@@ -37,8 +29,6 @@ type FileWorkspacePanelProps = {
   onEditorContentChange: (content: string) => void;
   selectedItem?: FileItem;
 };
-
-type ImagePresentation = "fit" | "actual";
 
 type ToolbarIconButtonProps = {
   active?: boolean;
@@ -71,7 +61,7 @@ function ToolbarIconButton({
       disabled={disabled}
       onClick={onClick}
       className={clsx(
-        "inline-flex h-9 w-9 items-center justify-center rounded-full border transition duration-150 ease-out",
+        "inline-flex h-8 w-8 items-center justify-center rounded-lg border transition duration-150 ease-out sm:h-9 sm:w-9 sm:rounded-xl",
         active
           ? "border-accent/35 bg-accent-soft text-accent"
           : "border-border bg-canvas text-ink hover:border-line-strong hover:bg-surface-alt",
@@ -81,26 +71,6 @@ function ToolbarIconButton({
       {children}
     </button>
   );
-}
-
-function formatSize(size: number | null): string {
-  if (size == null) {
-    return "--";
-  }
-
-  if (size < 1024) {
-    return `${size} B`;
-  }
-
-  if (size < 1024 * 1024) {
-    return `${(size / 1024).toFixed(1)} KB`;
-  }
-
-  if (size < 1024 * 1024 * 1024) {
-    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
 function isInlineMediaPreviewable(item: FileItem): boolean {
@@ -140,26 +110,6 @@ function canShowPreview(item: FileItem | undefined): boolean {
   }
 
   return item.editable || isInlineMediaPreviewable(item) || item.previewable;
-}
-
-function getPreviewPanelLabel(item: FileItem, isChinese: boolean): string {
-  if (item.editable) {
-    return isChinese ? "文本预览" : "Text Preview";
-  }
-
-  if (item.mimeType?.startsWith("image/")) {
-    return isChinese ? "图片预览" : "Image Preview";
-  }
-
-  if (item.mimeType === "application/pdf") {
-    return isChinese ? "PDF 预览" : "PDF Preview";
-  }
-
-  if (item.mimeType?.startsWith("video/")) {
-    return isChinese ? "视频预览" : "Video Preview";
-  }
-
-  return isChinese ? "预览" : "Preview";
 }
 
 function getEditBlockedMessage(item: FileItem, isChinese: boolean): string {
@@ -216,23 +166,14 @@ export function FileWorkspacePanel({
   const { formatDate, isChinese, pick } = useI18n();
   const [editorWrap, setEditorWrap] = useState(true);
   const [formatting, setFormatting] = useState(false);
-  const [previewExpanded, setPreviewExpanded] = useState(false);
-  const [imagePresentation, setImagePresentation] =
-    useState<ImagePresentation>("fit");
-  const [imageScale, setImageScale] = useState(100);
   const [formatError, setFormatError] = useState<string | null>(null);
 
   useEffect(() => {
     setEditorWrap(getDefaultEditorWrap(selectedItem));
     setFormatting(false);
-    setPreviewExpanded(false);
-    setImagePresentation("fit");
-    setImageScale(100);
     setFormatError(null);
   }, [selectedItem?.path]);
 
-  const lineCount =
-    editorContent.length > 0 ? editorContent.split(/\r?\n/).length : 1;
   const canPreview = canShowPreview(selectedItem);
   const canEdit = Boolean(
     selectedItem?.type === "file" && selectedItem.editable,
@@ -247,18 +188,14 @@ export function FileWorkspacePanel({
       : editorLineEnding === "lf"
         ? "LF"
         : "--";
-  const downloadUrl =
-    activeRootId && selectedItem?.type === "file"
-      ? getDownloadUrl(activeRootId, selectedItem.path)
-      : null;
   const previewUrl =
     activeRootId &&
     selectedItem?.type === "file" &&
     isInlineMediaPreviewable(selectedItem)
       ? getPreviewUrl(activeRootId, selectedItem.path)
       : null;
-  const previewHeight = previewExpanded ? "68vh" : "460px";
-  const editorHeight = previewExpanded ? "68vh" : "420px";
+  const previewHeight = "clamp(320px, 62vh, 460px)";
+  const editorHeight = "clamp(320px, 60vh, 420px)";
   const canFormat = Boolean(
     selectedItem?.type === "file" &&
     canEdit &&
@@ -276,21 +213,6 @@ export function FileWorkspacePanel({
           ? `格式化 ${getEditorLanguageLabel(selectedItem.name)}`
           : getEditorFormatLabel(selectedItem.name)
       : pick("格式化", "Format");
-
-  function handleImageZoomIn() {
-    setImagePresentation("actual");
-    setImageScale((current) => Math.min(current + 25, 300));
-  }
-
-  function handleImageZoomOut() {
-    setImagePresentation("actual");
-    setImageScale((current) => Math.max(current - 25, 50));
-  }
-
-  function handleImageReset() {
-    setImagePresentation("fit");
-    setImageScale(100);
-  }
 
   function handleEditorChange(content: string) {
     if (formatError) {
@@ -329,45 +251,6 @@ export function FileWorkspacePanel({
     }
   }
 
-  function renderPreviewActions() {
-    if (!selectedItem || selectedItem.type !== "file") {
-      return null;
-    }
-
-    return (
-      <div className="flex flex-wrap items-center gap-2">
-        {(isImagePreviewable(selectedItem) ||
-          isPdfPreviewable(selectedItem) ||
-          isVideoPreviewable(selectedItem)) &&
-        previewUrl ? (
-          <a
-            href={previewUrl}
-            target="_blank"
-            rel="noreferrer"
-            data-testid="preview-open-raw"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-canvas px-3 py-2 text-xs font-medium text-ink transition hover:border-accent"
-          >
-            <ArrowSquareOut className="h-4 w-4" weight="bold" />
-            {pick("新标签打开", "Open In New Tab")}
-          </a>
-        ) : null}
-        <button
-          type="button"
-          data-testid="preview-expand-toggle"
-          onClick={() => setPreviewExpanded((current) => !current)}
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-canvas px-3 py-2 text-xs font-medium text-ink transition hover:border-accent"
-        >
-          {previewExpanded ? (
-            <ArrowsIn className="h-4 w-4" weight="bold" />
-          ) : (
-            <ArrowsOut className="h-4 w-4" weight="bold" />
-          )}
-          {previewExpanded ? pick("紧凑视图", "Compact View") : pick("专注视图", "Focus View")}
-        </button>
-      </div>
-    );
-  }
-
   function renderPreviewContent() {
     if (!selectedItem) {
       return null;
@@ -395,21 +278,6 @@ export function FileWorkspacePanel({
 
       return (
         <div className="overflow-hidden rounded-[16px] border border-border bg-canvas">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-muted">
-                {getPreviewPanelLabel(selectedItem, isChinese)}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span className="rounded-full bg-canvas px-3 py-1 font-medium text-ink">
-                {languageLabel}
-              </span>
-              <span className="rounded-full bg-canvas px-3 py-1 font-medium text-ink">
-                {pick(`${lineCount} 行`, `${lineCount} lines`)}
-              </span>
-            </div>
-          </div>
           <div className="overflow-hidden" style={{ minHeight: previewHeight }}>
             <CodeEditor
               ariaLabel={`Previewing ${selectedItem.name}`}
@@ -451,104 +319,18 @@ export function FileWorkspacePanel({
     if (isImagePreviewable(selectedItem)) {
       return (
         <div className="overflow-hidden rounded-[16px] border border-border bg-canvas">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-muted">
-                {getPreviewPanelLabel(selectedItem, isChinese)}
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                {pick(
-                  "下载原始文件前，先在这里快速检查视觉内容。",
-                  "Inspect visuals inline before downloading the original asset.",
-                )}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                data-testid="preview-image-fit"
-                onClick={() => setImagePresentation("fit")}
-                className={clsx(
-                  "rounded-full border px-3 py-2 text-xs font-medium transition",
-                  imagePresentation === "fit"
-                    ? "border-ink bg-ink text-white"
-                    : "border-border bg-canvas text-ink hover:border-accent",
-                )}
-              >
-                {pick("适应", "Fit")}
-              </button>
-              <button
-                type="button"
-                data-testid="preview-image-zoom-out"
-                onClick={handleImageZoomOut}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-canvas px-3 py-2 text-xs font-medium text-ink transition hover:border-accent"
-              >
-                <MagnifyingGlassMinus className="h-4 w-4" weight="bold" />
-                {pick("缩小", "Zoom Out")}
-              </button>
-              <button
-                type="button"
-                data-testid="preview-image-reset"
-                onClick={handleImageReset}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-canvas px-3 py-2 text-xs font-medium text-ink transition hover:border-accent"
-              >
-                <ArrowCounterClockwise className="h-4 w-4" weight="bold" />
-                {pick("重置", "Reset")}
-              </button>
-              <button
-                type="button"
-                data-testid="preview-image-zoom-in"
-                onClick={handleImageZoomIn}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-canvas px-3 py-2 text-xs font-medium text-ink transition hover:border-accent"
-              >
-                <MagnifyingGlassPlus className="h-4 w-4" weight="bold" />
-                {pick("放大", "Zoom In")}
-              </button>
-            </div>
-          </div>
           <div
             className="overflow-auto bg-[#EEE6D8] p-5"
             style={{ height: previewHeight }}
           >
-            <div
-              className={clsx(
-                "flex min-h-full rounded-[28px] border border-border/80 bg-surface p-4 shadow-card",
-                imagePresentation === "fit"
-                  ? "items-center justify-center"
-                  : "items-start justify-start",
-              )}
-            >
+            <div className="flex min-h-full items-center justify-center rounded-[28px] border border-border/80 bg-surface p-4 shadow-card">
               <img
                 src={previewUrl}
                 alt={selectedItem.name}
                 data-testid="preview-image"
-                className={clsx(
-                  "rounded-2xl shadow-card transition duration-200 ease-out",
-                  imagePresentation === "fit"
-                    ? "max-h-full w-full object-contain"
-                    : "max-w-none",
-                )}
-                style={
-                  imagePresentation === "actual"
-                    ? { width: `${imageScale}%` }
-                    : undefined
-                }
+                className="max-h-full w-full rounded-2xl object-contain shadow-card transition duration-200 ease-out"
               />
             </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 border-t border-border bg-surface px-4 py-3 text-xs text-muted">
-            <span className="rounded-full bg-canvas px-3 py-1 font-medium text-ink">
-              {formatSize(selectedItem.size)}
-            </span>
-            <span className="rounded-full bg-canvas px-3 py-1 font-medium text-ink">
-              {selectedItem.mimeType}
-            </span>
-              <span className="rounded-full bg-canvas px-3 py-1 font-medium text-ink">
-                {pick(
-                  `缩放 ${imagePresentation === "fit" ? "自动" : `${imageScale}%`}`,
-                  `Scale ${imagePresentation === "fit" ? "Auto" : `${imageScale}%`}`,
-                )}
-              </span>
           </div>
         </div>
       );
@@ -557,27 +339,6 @@ export function FileWorkspacePanel({
     if (isPdfPreviewable(selectedItem)) {
       return (
         <div className="overflow-hidden rounded-[16px] border border-border bg-canvas">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-muted">
-                {getPreviewPanelLabel(selectedItem, isChinese)}
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                {pick(
-                  "PDF 会直接内联展示，必要时也可以跳转到浏览器标签页查看。",
-                  "PDF stays inline for quick review, with a direct handoff to the browser tab when needed.",
-                )}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span className="rounded-full bg-canvas px-3 py-1 font-medium text-ink">
-                {formatSize(selectedItem.size)}
-              </span>
-              <span className="rounded-full bg-canvas px-3 py-1 font-medium text-ink">
-                {selectedItem.mimeType}
-              </span>
-            </div>
-          </div>
           <iframe
             src={`${previewUrl}#toolbar=1&navpanes=0`}
             title={selectedItem.name}
@@ -592,27 +353,6 @@ export function FileWorkspacePanel({
     if (isVideoPreviewable(selectedItem)) {
       return (
         <div className="overflow-hidden rounded-[16px] border border-border bg-canvas">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-muted">
-                {getPreviewPanelLabel(selectedItem, isChinese)}
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                {pick(
-                  "视频可直接在这里播放，不需要离开当前目录上下文。",
-                  "Playback is embedded for fast inspection without interrupting the current directory context.",
-                )}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span className="rounded-full bg-canvas px-3 py-1 font-medium text-ink">
-                {formatSize(selectedItem.size)}
-              </span>
-              <span className="rounded-full bg-canvas px-3 py-1 font-medium text-ink">
-                {selectedItem.mimeType}
-              </span>
-            </div>
-          </div>
           <div className="bg-[#111111] p-3">
             <video
               controls
@@ -655,7 +395,7 @@ export function FileWorkspacePanel({
 
   return (
     <section className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
         {detailMode === "details" ? (
           <div className="space-y-4">
             <div className="panel-section p-4 text-sm leading-6 text-muted">
@@ -719,66 +459,38 @@ export function FileWorkspacePanel({
         ) : null}
 
         {detailMode === "preview" ? (
-          <div className="space-y-4" data-testid="preview-surface">
-            <div className="panel-section px-4 py-4 text-sm text-muted">
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-medium text-ink">{pick("预览", "Preview")}</p>
-                    <p className="mt-1 text-xs leading-5 text-muted">
-                      {pick(
-                        "可以切到专注视图查看更多细节。图片还支持适应和缩放。",
-                        "Use focus mode for larger inspection. Images also support fit and zoom controls.",
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {renderPreviewActions()}
-                    {downloadUrl ? (
-                      <a
-                        href={downloadUrl}
-                        data-testid="detail-download"
-                        className="action-button"
-                      >
-                        <DownloadSimple className="h-4 w-4" weight="bold" />
-                        {pick("下载原文件", "Download Original")}
-                      </a>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div data-testid="preview-surface">
             {renderPreviewContent()}
           </div>
         ) : null}
 
         {detailMode === "edit" ? (
-          <div className="space-y-4">
+          <div className="space-y-2.5">
             {canEdit ? (
               <>
                 {activeEditorError ? (
-                  <div className="rounded-[16px] border border-danger/25 bg-danger/5 px-4 py-3 text-sm text-danger">
+                  <div className="rounded-[16px] border border-danger/25 bg-danger/5 px-3 py-2.5 text-sm text-danger">
                     {activeEditorError}
                   </div>
                 ) : null}
 
                 {editorLoading ? (
-                  <div className="panel-section px-4 py-6 text-sm text-muted">
+                  <div className="panel-section px-3 py-4 text-sm text-muted">
                     {pick("加载可编辑内容中...", "Loading editable content...")}
                   </div>
                 ) : (
                   <div className="overflow-hidden rounded-[16px] border border-border bg-canvas">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3">
-                      <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-border bg-surface px-3 py-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <span
                           data-testid="editor-language"
-                          className="chip chip-neutral"
+                          className="chip chip-neutral chip-compact"
                         >
                           {languageLabel}
                         </span>
                         <span
                           data-testid="editor-line-ending"
-                          className="chip chip-neutral"
+                          className="chip chip-neutral chip-compact hidden sm:inline-flex"
                         >
                           {lineEndingLabel}
                         </span>
@@ -807,23 +519,30 @@ export function FileWorkspacePanel({
                         ) : null}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
                         <span
                           className={
                             editorDirty
-                              ? "chip chip-warning"
-                              : "chip chip-success"
+                              ? "chip chip-warning chip-compact"
+                              : "chip chip-success chip-compact"
                           }
                         >
-                          {editorDirty ? pick("有未保存修改", "Unsaved changes") : pick("已同步", "In sync")}
+                          {editorDirty
+                            ? pick("未保存", "Unsaved")
+                            : pick("已同步", "Synced")}
                         </span>
                         {editorModifiedAt ? (
-                          <span>{pick(`上次保存 ${formatDate(editorModifiedAt)}`, `Last saved ${formatDate(editorModifiedAt)}`)}</span>
+                          <span className="hidden sm:inline">
+                            {pick(
+                              `上次保存 ${formatDate(editorModifiedAt)}`,
+                              `Last saved ${formatDate(editorModifiedAt)}`,
+                            )}
+                          </span>
                         ) : null}
                       </div>
                     </div>
 
-                    <div className="overflow-hidden rounded-b-3xl">
+                    <div className="overflow-hidden rounded-b-2xl">
                       <CodeEditor
                         ariaLabel={`Editing ${selectedItem.name}`}
                         fileName={selectedItem.name}

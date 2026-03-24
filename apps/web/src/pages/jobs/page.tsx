@@ -416,14 +416,14 @@ export function JobsPage() {
             data-testid="jobs-refresh"
             onClick={() => void loadJobs()}
             disabled={jobsLoading}
-            className="action-button self-start"
+            className="action-button w-full justify-center self-stretch sm:w-auto sm:self-start"
           >
             <RefreshCw className={clsx('h-4 w-4', jobsLoading && 'animate-spin')} />
             {jobsLoading ? pick('刷新中...', 'Refreshing...') : pick('刷新', 'Refresh')}
           </button>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {summaryCards.map((card) => {
             const Icon = card.icon;
 
@@ -457,30 +457,32 @@ export function JobsPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setTaskFilter(filter)}
-                className={clsx(
-                  'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition duration-150 ease-out',
-                  activeFilter === filter
-                    ? 'border-ink-strong bg-ink-strong text-white'
-                    : 'border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt',
-                )}
-              >
-                <span>{getFilterLabel(filter, isChinese)}</span>
-                <span
+          <div className="overflow-x-auto scrollbar-none">
+            <div className="flex w-max gap-2">
+              {filters.map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setTaskFilter(filter)}
                   className={clsx(
-                    'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                    activeFilter === filter ? 'bg-white/16 text-white' : 'bg-canvas text-muted',
+                    'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition duration-150 ease-out',
+                    activeFilter === filter
+                      ? 'border-ink-strong bg-ink-strong text-white'
+                      : 'border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt',
                   )}
                 >
-                  {filterCounts[filter]}
-                </span>
-              </button>
-            ))}
+                  <span>{getFilterLabel(filter, isChinese)}</span>
+                  <span
+                    className={clsx(
+                      'rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                      activeFilter === filter ? 'bg-white/16 text-white' : 'bg-canvas text-muted',
+                    )}
+                  >
+                    {filterCounts[filter]}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -584,7 +586,7 @@ export function JobsPage() {
                   ) : null}
                 </div>
 
-                <aside className="panel-section flex flex-col gap-3 px-4 py-4">
+                <aside className="panel-section order-first flex flex-col gap-3 px-4 py-4 xl:order-none">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
                     {pick('操作区', 'Actions')}
                   </p>
@@ -596,7 +598,7 @@ export function JobsPage() {
                     <a
                       href={task.downloadUrl}
                       data-testid={`job-download-${task.id}`}
-                      className="action-button action-button-primary"
+                      className="action-button action-button-primary w-full justify-center"
                     >
                       <Download className="h-4 w-4" />
                       {pick('下载 Zip', 'Download Zip')}
@@ -612,7 +614,7 @@ export function JobsPage() {
                     type="button"
                     data-testid={`job-open-source-export-${task.id}`}
                     onClick={() => handleOpenSource(task)}
-                    className="action-button"
+                    className="action-button w-full justify-center"
                   >
                     <ArrowUpRight className="h-4 w-4" />
                     {pick('打开源目录', 'Open Source')}

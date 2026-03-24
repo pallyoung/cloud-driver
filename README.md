@@ -28,3 +28,28 @@ The current baseline includes:
 - live root loading and current-directory file listing
 
 Next phases cover file CRUD, text editing, export jobs, and backup jobs.
+
+## CLI Packaging
+
+The repository now includes a publishable CLI package scaffold at `packages/cd-cli`.
+
+Useful commands:
+
+1. `pnpm build:cli`
+2. `pnpm pack:cli`
+3. `pnpm smoke:cli`
+4. `pnpm changeset`
+5. `pnpm version-packages`
+
+What they do:
+
+1. Build the Web app first, then build the packaged CLI runtime.
+2. Produce an npm tarball under `output/npm/`.
+3. Pack the tarball, install it into a temporary prefix, start the packaged service, run a browser smoke flow, capture screenshots into `output/playwright/`, and stop the service.
+4. Create a release note for `@shier-art/cd-cli`.
+5. Apply queued `changesets` to package versions and changelogs.
+
+Release automation:
+
+1. `CLI Verify` validates build + packaged smoke on pushes and pull requests.
+2. `CLI Publish` uses `changesets` on `main` to create or update the release PR, then publishes `@shier-art/cd-cli` after the release PR is merged.

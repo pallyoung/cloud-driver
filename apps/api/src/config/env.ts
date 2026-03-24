@@ -12,6 +12,7 @@ if (existsSync(envFilePath)) {
 }
 
 const envSchema = z.object({
+  APP_HOST: z.string().default('0.0.0.0'),
   APP_PORT: z.coerce.number().default(3001),
   SESSION_SECRET: z.string().min(8),
   PASSWORD_HASH: z.string().min(1),
@@ -23,6 +24,7 @@ const envSchema = z.object({
   BACKUP_PROVIDER: z.string().default('mock'),
   MOCK_BACKUP_ROOT: z.string().default('./tmp/mock-quark'),
   QUARK_COOKIE: z.string().optional(),
+  WEB_DIST_PATH: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

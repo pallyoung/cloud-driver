@@ -214,7 +214,7 @@ function TreeActionButton({
         disabled={disabled}
         onClick={onClick}
         className={clsx(
-          "inline-flex h-9 w-9 items-center justify-center rounded-xl border transition duration-200 ease-out",
+          "inline-flex h-9 w-9 items-center justify-center rounded-lg border transition duration-200 ease-out sm:rounded-xl",
           disabled
             ? "cursor-not-allowed border-border bg-surface text-muted/50"
             : "border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt",
@@ -397,7 +397,7 @@ export function FolderTree({
       isDirectory && (expanded || isCurrentFolder)
         ? FolderOpen
         : getItemIcon(item);
-    const indent = Math.max(depth, 0) * 14;
+    const indent = Math.min(Math.max(depth, 0) * 10, 48);
     const active = isCurrentFolder || isSelectedFile;
 
     return (
@@ -407,7 +407,7 @@ export function FolderTree({
         className="space-y-1"
       >
         <div
-          className="flex items-center gap-1"
+          className="flex min-w-0 items-center gap-1 overflow-hidden"
           style={{ paddingLeft: `${indent}px` }}
         >
           {isDirectory ? (
@@ -416,7 +416,7 @@ export function FolderTree({
               aria-label={expanded ? "Collapse folder" : "Expand folder"}
               onClick={() => handleToggleExpanded(item.path)}
               className={clsx(
-                "inline-flex h-8 w-8 flex-none items-center justify-center rounded-xl transition duration-200 ease-out",
+                "inline-flex h-7 w-7 flex-none items-center justify-center rounded-lg transition duration-200 ease-out sm:h-8 sm:w-8 sm:rounded-xl",
                 active || isAncestor
                   ? "text-ink-strong hover:bg-white/60"
                   : "text-muted hover:bg-surface",
@@ -448,7 +448,7 @@ export function FolderTree({
               onOpenItemMenu(item, { x: event.clientX, y: event.clientY });
             }}
             className={clsx(
-              "group flex min-w-0 flex-1 items-center gap-2 rounded-xl px-2 py-2 text-left transition duration-200 ease-out",
+              "group flex min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-lg px-2 py-1.5 text-left transition duration-200 ease-out sm:rounded-xl sm:py-2",
               active
                 ? "bg-ink-strong text-white shadow-panel"
                 : isAncestor
@@ -463,7 +463,7 @@ export function FolderTree({
               )}
               weight={isDirectory ? "fill" : "regular"}
             />
-            <span className="truncate text-sm font-medium">{item.name}</span>
+            <span className="truncate text-[13px] font-medium sm:text-sm">{item.name}</span>
           </button>
 
           <button
@@ -478,7 +478,7 @@ export function FolderTree({
               });
             }}
             className={clsx(
-              "inline-flex h-8 w-8 flex-none items-center justify-center rounded-xl transition duration-200 ease-out",
+              "inline-flex h-7 w-7 flex-none items-center justify-center rounded-lg transition duration-200 ease-out sm:h-8 sm:w-8 sm:rounded-xl",
               active
                 ? "text-white/80 hover:bg-white/10 hover:text-white"
                 : "text-muted hover:bg-surface hover:text-ink",
@@ -541,7 +541,7 @@ export function FolderTree({
         data-testid={`tree-root-${sanitizeTestId(root.id)}`}
         className="space-y-1"
       >
-        <div className="flex items-center gap-1">
+        <div className="flex min-w-0 items-center gap-1 overflow-hidden">
           <button
             type="button"
             aria-label={
@@ -556,7 +556,7 @@ export function FolderTree({
               handleToggleExpanded("");
             }}
             className={clsx(
-              "inline-flex h-8 w-8 flex-none items-center justify-center rounded-xl transition duration-200 ease-out",
+              "inline-flex h-7 w-7 flex-none items-center justify-center rounded-lg transition duration-200 ease-out sm:h-8 sm:w-8 sm:rounded-xl",
               isActiveRoot
                 ? "text-ink-strong hover:bg-white/60"
                 : "text-muted hover:bg-surface",
@@ -582,7 +582,7 @@ export function FolderTree({
               onNavigate("");
             }}
             className={clsx(
-              "flex min-w-0 flex-1 items-center gap-3 rounded-xl px-2 py-2 text-left transition duration-200 ease-out",
+              "flex min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-lg px-2 py-1.5 text-left transition duration-200 ease-out sm:gap-3 sm:rounded-xl sm:py-2",
               isCurrentRoot
                 ? "bg-ink-strong text-white shadow-panel"
                 : isRootContext
@@ -599,10 +599,10 @@ export function FolderTree({
             />
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-2">
-                <p className="truncate text-sm font-medium">{root.label}</p>
+                <p className="truncate text-[13px] font-medium sm:text-sm">{root.label}</p>
                 <span
                   className={clsx(
-                    "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em]",
+                    "rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] sm:px-2 sm:text-[10px]",
                     isCurrentRoot
                       ? "bg-white/12 text-white/78"
                       : root.readOnly
@@ -615,7 +615,7 @@ export function FolderTree({
               </div>
               <p
                 className={clsx(
-                  "mt-1 truncate text-[11px]",
+                  "mt-1 hidden truncate text-[11px] sm:block",
                   isCurrentRoot ? "text-white/70" : "text-muted",
                 )}
               >
@@ -662,17 +662,17 @@ export function FolderTree({
   }
 
   return (
-    <aside className="panel-elevated flex min-h-[calc(100vh-9rem)] flex-col overflow-hidden p-0">
-      <div className="border-b border-border bg-canvas/80 px-4 py-3">
+    <aside className="panel-elevated flex min-h-[56vh] min-w-0 flex-col overflow-hidden p-0 xl:min-h-[calc(100vh-9rem)]">
+      <div className="border-b border-border bg-canvas/80 px-3 py-2.5 sm:px-4 sm:py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted sm:text-[11px] sm:tracking-[0.18em]">
               <TreeStructure className="h-4 w-4" weight="bold" />
               {pick("文件树", "File Tree")}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <TreeActionButton
               disabled={!activeRootId}
               icon={ArrowClockwise}
@@ -715,7 +715,7 @@ export function FolderTree({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2.5 sm:py-3">
         {roots.length > 0 ? (
           <div className="space-y-2">
             {roots.map((root) => renderRootNode(root))}

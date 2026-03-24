@@ -1,0 +1,45 @@
+{
+  "name": "@shier-art/cd-cli",
+  "version": "0.1.0",
+  "description": "Single-package Cloud Driver service CLI with bundled web UI and API runtime.",
+  "keywords": [
+    "cloud-driver",
+    "file-manager",
+    "self-hosted",
+    "cli"
+  ],
+  "type": "module",
+  "bin": {
+    "cd-cli": "dist/bin.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pallyoung/cloud-driver.git",
+    "directory": "packages/cd-cli"
+  },
+  "homepage": "https://github.com/pallyoung/cloud-driver#readme",
+  "bugs": {
+    "url": "https://github.com/pallyoung/cloud-driver/issues"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node scripts/clean.mjs && tsc -p tsconfig.json && node scripts/build-runtime.mjs && node scripts/postbuild.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "yaml": "^2.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "esbuild": "^0.25.10",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

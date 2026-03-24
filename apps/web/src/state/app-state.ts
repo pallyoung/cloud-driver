@@ -47,6 +47,7 @@ export const fileItemsState = state<FileItem[]>([], 'fileItems');
 export const filesLoadingState = state<boolean>(false, 'filesLoading');
 export const filesErrorState = state<string | null>(null, 'filesError');
 export const searchKeywordState = state<string>('', 'searchKeyword');
+export const explorerSurfaceState = state<'tree' | 'content'>('content', 'explorerSurface');
 
 export const selectedItemPathState = state<string | null>(null, 'selectedItemPath');
 export const selectedItemState = state<FileItem | null>(null, 'selectedItem');
@@ -229,6 +230,12 @@ export const setLanguageAction = action<AppLanguage, void>((store: Store, langua
   store.set(languageState, language);
   persistLanguage(language);
 });
+
+export const setExplorerSurfaceAction = action<'tree' | 'content', void>(
+  (store: Store, surface) => {
+    store.set(explorerSurfaceState, surface);
+  },
+);
 
 export const logoutAction = action(async (store: Store) => {
   await logout();

@@ -1,0 +1,22 @@
+{
+  "configVersion": 1,
+  "server": {
+    "host": "127.0.0.1",
+    "port": 3001
+  },
+  "auth": {
+    "mode": "single-user-password",
+    "passwordHash": "",
+    "sessionSecret": ""
+  },
+  "storage": {
+    "sqlitePath": "./data/cloud-driver.db",
+    "logDir": "./logs",
+    "tempExportDir": "./tmp/exports",
+    "exportTtlMinutes": 30,
+    "mockBackupRoot": "./tmp/mock-backup"
+  },
+  "features": {
+    "backupProvider": "mock"
+  }
+}

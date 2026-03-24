@@ -85,7 +85,7 @@ test("single-user core flow", async ({ page }) => {
   await expect(editor).toContainText("Reviewed by Playwright E2E.");
   await expect(page.getByTestId("editor-save")).toBeEnabled();
 
-  await page.getByTestId("explorer-breadcrumb-root").click();
+  await page.getByTestId("explorer-back-directory").click();
   await expect(page.getByTestId("dialog-unsaved")).toBeVisible();
   await capture(page, "04-editor-unsaved.png");
   await page.getByTestId("dialog-unsaved-cancel").click();
@@ -93,7 +93,7 @@ test("single-user core flow", async ({ page }) => {
   await page.getByTestId("editor-save").click();
   await expect(page.getByTestId("editor-save")).toBeDisabled();
 
-  await page.getByTestId("explorer-breadcrumb-root").click();
+  await page.getByTestId("explorer-back-directory").click();
   await page.getByTestId("explorer-row-contracts").click({ button: "right" });
   await expect(page.getByTestId("explorer-context-menu")).toBeVisible();
   await page.getByTestId("context-action-export").click({ force: true });

@@ -4,13 +4,20 @@
   "private": true,
   "packageManager": "pnpm@10.15.0",
   "scripts": {
+    "changeset": "changeset",
     "dev": "pnpm --parallel --filter @cloud-driver/api --filter @cloud-driver/web dev",
-    "build": "pnpm -r --if-present build",
+    "build": "pnpm --filter @cloud-driver/web build && pnpm --filter @cloud-driver/api build && pnpm --filter @shier-art/cd-cli build",
+    "build:cli": "pnpm --filter @cloud-driver/web build && pnpm --filter @shier-art/cd-cli build",
+    "pack:cli": "pnpm build:cli && node scripts/release/pack-cli.mjs",
+    "release:cli": "pnpm build:cli && node scripts/smoke/cli-pack-install.mjs --browser && changeset publish",
+    "smoke:cli": "pnpm build:cli && node scripts/smoke/cli-pack-install.mjs --browser",
     "typecheck": "pnpm -r --if-present typecheck",
     "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "version-packages": "changeset version"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.30.0",
     "@playwright/test": "^1.58.2"
   }
 }

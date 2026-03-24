@@ -9,7 +9,10 @@ import {
 import type { FileItem } from "@cloud-driver/shared";
 import clsx from "clsx";
 import {
+  ArrowCounterClockwise,
+  CaretLeft,
   CaretRight,
+  Eye,
   File as FileIcon,
   FileCode,
   FileCss,
@@ -22,8 +25,10 @@ import {
   FileTs,
   FileVideo,
   FileZip,
+  FloppyDisk,
   Folder,
   MagnifyingGlass,
+  PencilSimple,
   type Icon,
 } from "@phosphor-icons/react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -57,6 +62,7 @@ import {
   editorModifiedAtState,
   editorOriginalContentState,
   editorSavingState,
+  explorerSurfaceState,
   fileItemsState,
   fileMutationErrorState,
   fileMutationPendingState,
@@ -288,6 +294,21 @@ function getDefaultDetailMode(item?: FileItem): DetailMode {
   return "details";
 }
 
+function getDetailModeLabel(
+  mode: DetailMode,
+  isChinese: boolean,
+): string {
+  if (mode === "preview") {
+    return isChinese ? "预览" : "Preview";
+  }
+
+  if (mode === "edit") {
+    return isChinese ? "编辑" : "Edit";
+  }
+
+  return isChinese ? "详情" : "Details";
+}
+
 type NonUnsavedDialog = Exclude<ExplorerDialogState, { type: "unsaved" }>;
 
 type PendingIntent =
@@ -346,6 +367,8 @@ export function ExplorerPage() {
     null,
   );
   const [treeRefreshKey, setTreeRefreshKey] = useState(0);
+  const [compactSurface, setCompactSurface] =
+    useRelaxState(explorerSurfaceState);
   const [
     setActiveRoot,
     setSearchKeyword,
@@ -412,7 +435,10 @@ export function ExplorerPage() {
     (item) => item.type === "directory",
   ).length;
   const fileCount = items.length - directoryCount;
-  const currentDirectoryLabel = breadcrumbs.at(-1)?.label ?? "Root";
+  const currentDirectoryLabel =
+    breadcrumbs.at(-1)?.label ??
+    activeRoot?.label ??
+    pick("挂载目录", "Workspace");
 
   useEffect(() => {
     if (authStatus !== "authenticated" || !activeRootId) {
@@ -581,12 +607,15 @@ export function ExplorerPage() {
 
     switch (intent.kind) {
       case "root":
+        setCompactSurface("content");
         setActiveRoot(intent.rootId);
         return;
       case "navigate":
+        setCompactSurface("content");
         setCurrentPath(intent.nextPath);
         return;
       case "select":
+        setCompactSurface("content");
         selectItem({
           path: intent.item?.path ?? null,
           item: intent.item,
@@ -960,223 +989,239 @@ export function ExplorerPage() {
 
   return (
     <>
-      <div className="grid min-h-[calc(100vh-9rem)] gap-3 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <FolderTree
-          activeRootId={activeRootId}
-          canCreateInCurrentRoot={canMutate}
-          currentItems={fileItems}
-          currentPath={currentPath}
-          isRefreshing={isLoading}
-          isMutating={fileMutationPending}
-          onCreateFolder={handleCreateFolder}
-          onRefresh={() =>
-            void loadFiles({
-              rootId: activeRootId ?? "",
-              path: currentPath,
-            })
-          }
-          selectedItemPath={activeFile?.path ?? null}
-          onNavigate={handleNavigate}
-          onOpenItemMenu={handleOpenContextMenu}
-          onRootChange={handleRootChange}
-          onSelectFile={handleSelect}
-          onTriggerUpload={() => uploadInputRef.current?.click()}
-          refreshKey={treeRefreshKey}
-          roots={roots}
-        />
-
-        <section className="panel-elevated overflow-hidden p-0">
-          <div className="border-b border-border bg-canvas/80 px-4 py-3 sm:px-5">
-            <input
-              ref={uploadInputRef}
-              type="file"
-              className="hidden"
-              onChange={(event) => void handleUploadChange(event)}
+      <div className="space-y-2.5">
+        <div className="grid gap-3 xl:grid-cols-[280px_minmax(0,1fr)] xl:min-h-[calc(100vh-9rem)]">
+          <div
+            className={clsx(
+              compactSurface === "tree" ? "block" : "hidden",
+              "xl:block",
+            )}
+          >
+            <FolderTree
+              activeRootId={activeRootId}
+              canCreateInCurrentRoot={canMutate}
+              currentItems={fileItems}
+              currentPath={currentPath}
+              isRefreshing={isLoading}
+              isMutating={fileMutationPending}
+              onCreateFolder={handleCreateFolder}
+              onRefresh={() =>
+                void loadFiles({
+                  rootId: activeRootId ?? "",
+                  path: currentPath,
+                })
+              }
+              selectedItemPath={activeFile?.path ?? null}
+              onNavigate={handleNavigate}
+              onOpenItemMenu={handleOpenContextMenu}
+              onRootChange={handleRootChange}
+              onSelectFile={handleSelect}
+              onTriggerUpload={() => uploadInputRef.current?.click()}
+              refreshKey={treeRefreshKey}
+              roots={roots}
             />
-
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="min-w-0 flex flex-wrap items-center gap-2 text-xs text-muted">
-                {activeRoot ? (
-                  <span
-                    className={
-                      activeRoot.readOnly
-                        ? "chip chip-warning"
-                        : "chip chip-success"
-                    }
-                  >
-                    {activeRoot.readOnly ? pick("只读根目录", "Read-only root") : pick("可写根目录", "Writable root")}
-                  </span>
-                ) : null}
-                <button
-                  type="button"
-                  data-testid="explorer-breadcrumb-root"
-                  onClick={() => {
-                    if (currentPath === "" && selectedItem) {
-                      handleShowDirectory();
-                      return;
-                    }
-
-                    handleNavigate("");
-                  }}
-                  className={clsx(
-                    "rounded-full border px-3 py-1.5 font-medium transition duration-200 ease-out",
-                    currentPath === ""
-                      ? "border-ink-strong bg-ink-strong text-white"
-                      : "border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt",
-                  )}
-                >
-                  {pick("根目录", "root")}
-                </button>
-                {breadcrumbs.map((crumb) => (
-                  <div key={crumb.path} className="flex items-center gap-2">
-                    <CaretRight
-                      className="h-3.5 w-3.5 text-muted"
-                      weight="bold"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (crumb.path === currentPath && selectedItem) {
-                          handleShowDirectory();
-                          return;
-                        }
-
-                        handleNavigate(crumb.path);
-                      }}
-                      className={clsx(
-                        "rounded-full border px-3 py-1.5 font-medium transition duration-200 ease-out",
-                        crumb.path === currentPath
-                          ? "border-ink-strong bg-ink-strong text-white"
-                          : "border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt",
-                      )}
-                    >
-                      {crumb.label}
-                    </button>
-                  </div>
-                ))}
-                  <span className="truncate text-base font-semibold text-ink-strong">
-                  {activeFile?.name ?? currentDirectoryLabel}
-                </span>
-              </div>
-
-              {activeFile ? (
-                <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                  <button
-                    type="button"
-                    data-testid="detail-mode-preview"
-                    disabled={!canActiveFilePreview}
-                    onClick={() => setDetailMode("preview")}
-                    className={clsx(
-                      "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition duration-200 ease-out",
-                      detailMode === "preview"
-                        ? "border-ink-strong bg-ink-strong text-white"
-                        : "border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40",
-                    )}
-                  >
-                    {pick("预览", "Preview")}
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="detail-mode-edit"
-                    disabled={!canActiveFileEdit}
-                    onClick={() => setDetailMode("edit")}
-                    className={clsx(
-                      "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition duration-200 ease-out",
-                      detailMode === "edit"
-                        ? "border-ink-strong bg-ink-strong text-white"
-                        : "border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40",
-                    )}
-                  >
-                    {pick("编辑", "Edit")}
-                    {detailMode !== "edit" && editorDirty ? (
-                      <span className="h-2 w-2 rounded-full bg-warning" />
-                    ) : null}
-                  </button>
-                  {canActiveFileEdit ? (
-                    <button
-                      type="button"
-                      data-testid="editor-save"
-                      onClick={() => void handleSaveEditor()}
-                      disabled={!editorDirty || editorSaving}
-                      className="action-button action-button-primary"
-                    >
-                      {editorSaving ? pick("保存中...", "Saving...") : pick("保存", "Save")}
-                    </button>
-                  ) : null}
-                  {canActiveFileEdit ? (
-                    <button
-                      type="button"
-                      data-testid="editor-discard"
-                      onClick={() => discardEditorChanges()}
-                      disabled={!editorDirty || editorSaving}
-                      className="action-button"
-                    >
-                      {pick("放弃修改", "Discard")}
-                    </button>
-                  ) : null}
-                  <span className="chip chip-neutral">
-                    {getItemLabel(activeFile, isChinese)}
-                  </span>
-                  <span className="chip chip-neutral">
-                    {formatSize(activeFile.size)}
-                  </span>
-                  <span
-                    className={
-                      activeFile.editable
-                        ? "chip chip-success"
-                        : "chip chip-neutral"
-                    }
-                  >
-                    {activeFile.editable
-                      ? pick("可编辑", "Editable")
-                      : activeFile.previewable
-                        ? pick("仅预览", "Preview only")
-                        : pick("仅下载", "Download only")}
-                  </span>
-                  <span className="chip chip-neutral">
-                    {pick(`修改于 ${formatDate(activeFile.modifiedAt)}`, `Modified ${formatDate(activeFile.modifiedAt)}`)}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex min-w-0 flex-col gap-3 xl:min-w-[520px] xl:flex-row xl:items-center xl:justify-end">
-                  <label className="relative block xl:min-w-[280px] xl:flex-1">
-                    <MagnifyingGlass className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-                    <input
-                      data-testid="explorer-search"
-                      value={searchKeyword}
-                      onChange={(event) => setSearchKeyword(event.target.value)}
-                      placeholder={pick("搜索当前目录", "Search current directory")}
-                      className="input-soft pl-11"
-                    />
-                  </label>
-
-                  <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                    <span className="chip chip-neutral">
-                      {pick(`${items.length} 项`, `${items.length} items`)}
-                    </span>
-                    <span className="chip chip-neutral">
-                      {pick(`${directoryCount} 个文件夹`, `${directoryCount} folders`)}
-                    </span>
-                    <span className="chip chip-neutral">{pick(`${fileCount} 个文件`, `${fileCount} files`)}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {filesError ? (
-              <div className="mt-4 rounded-[22px] border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
-                {filesError}
-              </div>
-            ) : null}
-
-            {fileMutationError ? (
-              <div className="mt-4 rounded-[22px] border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning">
-                {fileMutationError}
-              </div>
-            ) : null}
           </div>
 
-          <div className="min-h-[calc(100vh-18rem)]">
+          <section
+            className={clsx(
+              "panel-elevated overflow-hidden p-0",
+              compactSurface === "content" ? "block" : "hidden",
+              "xl:block",
+            )}
+          >
+            <div className="border-b border-border bg-canvas/80 px-2 py-1.5 sm:px-3.5 sm:py-2">
+              <input
+                ref={uploadInputRef}
+                type="file"
+                className="hidden"
+                onChange={(event) => void handleUploadChange(event)}
+              />
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                  {activeFile ? (
+                    <button
+                      type="button"
+                      data-testid="explorer-back-directory"
+                      aria-label={pick("返回目录内容", "Back to directory")}
+                      title={pick("返回目录内容", "Back to directory")}
+                      onClick={handleShowDirectory}
+                      className="inline-flex size-8 flex-none items-center justify-center rounded-lg border border-border bg-surface text-ink transition duration-150 ease-out hover:border-line-strong hover:bg-surface-alt sm:size-9 sm:rounded-xl"
+                    >
+                      <CaretLeft className="h-4 w-4" weight="bold" />
+                    </button>
+                  ) : currentPath ? (
+                    <button
+                      type="button"
+                      data-testid="explorer-back-parent"
+                      aria-label={pick("返回上级目录", "Back to parent")}
+                      title={pick("返回上级目录", "Back to parent")}
+                      onClick={() => handleNavigate(getParentPath(currentPath))}
+                      className="inline-flex size-8 flex-none items-center justify-center rounded-lg border border-border bg-surface text-ink transition duration-150 ease-out hover:border-line-strong hover:bg-surface-alt sm:size-9 sm:rounded-xl"
+                    >
+                      <CaretLeft className="h-4 w-4" weight="bold" />
+                    </button>
+                  ) : null}
+
+                  <span className="min-w-0 truncate text-[13px] font-semibold text-ink-strong sm:text-[15px]">
+                    {activeFile?.name ?? currentDirectoryLabel}
+                  </span>
+                </div>
+
+                {activeFile ? (
+                  <div className="ml-auto flex min-w-0 flex-wrap items-center gap-1 xl:justify-end">
+                    <span className="chip chip-neutral chip-compact hidden sm:inline-flex">
+                      {getItemLabel(activeFile, isChinese)}
+                    </span>
+                    <span className="chip chip-neutral chip-compact hidden sm:inline-flex">
+                      {formatSize(activeFile.size)}
+                    </span>
+                    <span
+                      className={
+                        activeFile.editable
+                          ? "chip chip-success chip-compact"
+                          : "chip chip-neutral chip-compact"
+                      }
+                    >
+                      {activeFile.editable
+                        ? pick("可编辑", "Editable")
+                        : activeFile.previewable
+                          ? pick("仅预览", "Preview only")
+                          : pick("仅下载", "Download only")}
+                    </span>
+                    <span className="chip chip-neutral chip-compact hidden lg:inline-flex">
+                      {pick(
+                        `修改于 ${formatDate(activeFile.modifiedAt)}`,
+                        `Modified ${formatDate(activeFile.modifiedAt)}`,
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      data-testid="detail-mode-preview"
+                      aria-label={getDetailModeLabel("preview", isChinese)}
+                      title={getDetailModeLabel("preview", isChinese)}
+                      disabled={!canActiveFilePreview}
+                      onClick={() => setDetailMode("preview")}
+                      className={clsx(
+                        "relative inline-flex size-8 items-center justify-center rounded-lg border transition duration-150 ease-out sm:size-9 sm:rounded-xl",
+                        detailMode === "preview"
+                          ? "border-ink-strong bg-ink-strong text-white shadow-sm hover:border-ink-strong hover:bg-ink-strong"
+                          : "border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt",
+                        !canActiveFilePreview &&
+                          "cursor-not-allowed opacity-40 hover:border-border hover:bg-surface",
+                      )}
+                    >
+                      <Eye
+                        className="h-4 w-4"
+                        weight={detailMode === "preview" ? "fill" : "bold"}
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="detail-mode-edit"
+                      aria-label={getDetailModeLabel("edit", isChinese)}
+                      title={getDetailModeLabel("edit", isChinese)}
+                      disabled={!canActiveFileEdit}
+                      onClick={() => setDetailMode("edit")}
+                      className={clsx(
+                        "relative inline-flex size-8 items-center justify-center rounded-lg border transition duration-150 ease-out sm:size-9 sm:rounded-xl",
+                        detailMode === "edit"
+                          ? "border-ink-strong bg-ink-strong text-white shadow-sm hover:border-ink-strong hover:bg-ink-strong"
+                          : "border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt",
+                        !canActiveFileEdit &&
+                          "cursor-not-allowed opacity-40 hover:border-border hover:bg-surface",
+                      )}
+                    >
+                      <PencilSimple
+                        className="h-4 w-4"
+                        weight={detailMode === "edit" ? "fill" : "bold"}
+                      />
+                    </button>
+                    {canActiveFileEdit ? (
+                      <button
+                        type="button"
+                        data-testid="editor-save"
+                        aria-label={editorSaving ? pick("保存中", "Saving") : pick("保存", "Save")}
+                        title={editorSaving ? pick("保存中", "Saving") : pick("保存", "Save")}
+                        onClick={() => void handleSaveEditor()}
+                        disabled={!editorDirty || editorSaving}
+                        className={clsx(
+                          "inline-flex size-8 items-center justify-center rounded-lg border transition duration-150 ease-out sm:size-9 sm:rounded-xl",
+                          !editorDirty || editorSaving
+                            ? "cursor-not-allowed border-border bg-surface text-muted/50"
+                            : "border-ink-strong bg-ink-strong text-white hover:border-accent hover:bg-accent",
+                        )}
+                      >
+                        <FloppyDisk
+                          className={clsx("h-4 w-4", editorSaving && "animate-pulse")}
+                          weight="bold"
+                        />
+                      </button>
+                    ) : null}
+                    {canActiveFileEdit ? (
+                      <button
+                        type="button"
+                        data-testid="editor-discard"
+                        aria-label={pick("放弃修改", "Discard changes")}
+                        title={pick("放弃修改", "Discard changes")}
+                        onClick={() => discardEditorChanges()}
+                        disabled={!editorDirty || editorSaving}
+                        className={clsx(
+                          "inline-flex size-8 items-center justify-center rounded-lg border transition duration-150 ease-out sm:size-9 sm:rounded-xl",
+                          !editorDirty || editorSaving
+                            ? "cursor-not-allowed border-border bg-surface text-muted/50"
+                            : "border-border bg-surface text-ink hover:border-line-strong hover:bg-surface-alt",
+                        )}
+                      >
+                        <ArrowCounterClockwise className="h-4 w-4" weight="bold" />
+                      </button>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="flex w-full min-w-0 flex-wrap items-center gap-1.5 xl:flex-1 xl:justify-end">
+                    <label className="relative block min-w-[180px] flex-1 xl:max-w-xs">
+                      <MagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
+                      <input
+                        data-testid="explorer-search"
+                        value={searchKeyword}
+                        onChange={(event) => setSearchKeyword(event.target.value)}
+                        placeholder={pick("搜索当前目录", "Search current directory")}
+                        className="input-soft input-soft-compact pl-9"
+                      />
+                    </label>
+
+                    <div className="flex flex-wrap items-center gap-1 xl:justify-end">
+                      <span className="chip chip-neutral chip-compact">
+                        {pick(`${items.length} 项`, `${items.length} items`)}
+                      </span>
+                      <span className="chip chip-neutral chip-compact hidden sm:inline-flex">
+                        {pick(
+                          `${directoryCount} 个文件夹`,
+                          `${directoryCount} folders`,
+                        )}
+                      </span>
+                      <span className="chip chip-neutral chip-compact hidden sm:inline-flex">
+                        {pick(`${fileCount} 个文件`, `${fileCount} files`)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {filesError ? (
+                <div className="mt-3 rounded-[18px] border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm text-danger sm:mt-4 sm:rounded-[22px] sm:px-4 sm:py-3">
+                  {filesError}
+                </div>
+              ) : null}
+
+              {fileMutationError ? (
+                <div className="mt-3 rounded-[18px] border border-warning/30 bg-warning/5 px-3.5 py-2.5 text-sm text-warning sm:mt-4 sm:rounded-[22px] sm:px-4 sm:py-3">
+                  {fileMutationError}
+                </div>
+              ) : null}
+            </div>
+
+          <div className="min-h-[60vh] xl:min-h-[calc(100vh-18rem)]">
             {activeFile ? (
               <div className="min-h-full overflow-hidden bg-canvas/40">
                 <FileWorkspacePanel
@@ -1329,7 +1374,8 @@ export function ExplorerPage() {
               </div>
             )}
           </div>
-        </section>
+          </section>
+        </div>
       </div>
 
       {contextMenu ? (

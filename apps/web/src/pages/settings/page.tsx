@@ -56,7 +56,7 @@ export function SettingsPage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {summaryCards.map((card) => {
             const Icon = card.icon;
 

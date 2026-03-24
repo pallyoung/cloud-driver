@@ -80,6 +80,10 @@ textarea {
     @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold;
   }
 
+  .chip-compact {
+    @apply gap-1 rounded-md px-2 py-0.5 text-[10px] leading-4;
+  }
+
   .chip-neutral {
     @apply bg-ink/5 text-ink;
   }
@@ -101,7 +105,7 @@ textarea {
   }
 
   .action-button {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3.5 py-2 text-sm font-medium text-ink transition duration-150 ease-out hover:border-line-strong hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-[13px] font-medium text-ink transition duration-150 ease-out hover:border-line-strong hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-10 sm:gap-2 sm:rounded-xl sm:px-3.5 sm:py-2 sm:text-sm;
   }
 
   .action-button-primary {
@@ -114,5 +118,20 @@ textarea {
 
   .input-soft {
     @apply w-full rounded-xl border border-border bg-surface-alt px-3.5 py-2.5 text-sm text-ink outline-none transition duration-150 ease-out placeholder:text-muted/80 focus:border-accent focus:ring-4 focus:ring-accent/10;
+  }
+
+  .input-soft-compact {
+    @apply rounded-lg px-3 py-2 text-[13px] leading-5;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
