@@ -1,0 +1,4 @@
+Cloud Driver V1 skeleton
+- Auth and roots API
+- Live file listing
+- Text editing baseline

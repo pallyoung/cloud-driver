@@ -1,0 +1,9 @@
+roots:
+  - id: docs
+    label: Documents
+    path: ../dev-roots/docs
+    readOnly: false
+  - id: media
+    label: Media
+    path: ../dev-roots/media
+    readOnly: false
