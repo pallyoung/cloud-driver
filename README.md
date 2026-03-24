@@ -29,11 +29,71 @@ The current baseline includes:
 
 Next phases cover file CRUD, text editing, export jobs, and backup jobs.
 
+## CLI Install
+
+Cloud Driver can be installed as a single packaged CLI:
+
+```bash
+npm i -g @shier-art/cd-cli
+```
+
+Requirements:
+
+- Node.js `>= 22`
+
+After installation you get one command:
+
+```bash
+cd-cli
+```
+
+## CLI Quick Start
+
+```bash
+cd-cli init
+cd-cli password set
+cd-cli workspace add /srv/files --id files --label "Files"
+cd-cli start
+cd-cli open
+```
+
+Notes:
+
+- `cd-cli start` launches the server in a detached child process, so it does not occupy the current shell.
+- The packaged npm module already includes the web UI and API runtime. No separate web or server install is required.
+
+## CLI Help
+
+Current `cd-cli --help` output:
+
+```text
+Cloud Driver CLI
+
+Usage:
+  cd-cli init [--home <path>] [--password <password>] [--host <host>] [--port <port>]
+  cd-cli start [--home <path>]
+  cd-cli run [--home <path>]
+  cd-cli stop [--home <path>]
+  cd-cli restart [--home <path>]
+  cd-cli status [--home <path>]
+  cd-cli open [--home <path>] [--print-only]
+  cd-cli logs [--home <path>]
+  cd-cli doctor [--home <path>]
+  cd-cli password set [--home <path>] [--password <password>]
+  cd-cli workspace list [--home <path>]
+  cd-cli workspace add <path> [--home <path>] [--id <id>] [--label <label>] [--read-only]
+  cd-cli workspace remove <id> [--home <path>]
+  cd-cli workspace update <id> [--home <path>] [--label <label>] [--read-only <true|false>]
+  cd-cli config show [--home <path>]
+  cd-cli config path [--home <path>]
+  cd-cli config set <host|port> <value> [--home <path>]
+```
+
 ## CLI Packaging
 
-The repository now includes a publishable CLI package scaffold at `packages/cd-cli`.
+The repository includes the publishable CLI package source at `packages/cd-cli`.
 
-Useful commands:
+Useful workspace commands:
 
 1. `pnpm build:cli`
 2. `pnpm pack:cli`
@@ -43,7 +103,7 @@ Useful commands:
 
 What they do:
 
-1. Build the Web app first, then build the packaged CLI runtime.
+1. Build the web app first, then build the packaged CLI runtime.
 2. Produce an npm tarball under `output/npm/`.
 3. Pack the tarball, install it into a temporary prefix, start the packaged service, run a browser smoke flow, capture screenshots into `output/playwright/`, and stop the service.
 4. Create a release note for `@shier-art/cd-cli`.
@@ -51,5 +111,5 @@ What they do:
 
 Release automation:
 
-1. `CLI Verify` validates build + packaged smoke on pushes and pull requests.
+1. `CLI Verify` validates build and packaged smoke on pushes and pull requests.
 2. `CLI Publish` uses `changesets` on `main` to create or update the release PR, then publishes `@shier-art/cd-cli` after the release PR is merged.
