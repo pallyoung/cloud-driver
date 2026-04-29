@@ -60,11 +60,7 @@ export function FileActionsMenu({
 }: FileActionsMenuProps) {
   const { pick } = useI18n();
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const [position, setPosition] = useState(anchor);
-
-  useEffect(() => {
-    setPosition(anchor);
-  }, [anchor]);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
 
   useLayoutEffect(() => {
     const menu = menuRef.current;
@@ -86,7 +82,7 @@ export function FileActionsMenu({
     );
 
     setPosition({ x: nextX, y: nextY });
-  }, [anchor, entries]);
+  }, [anchor]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -130,6 +126,10 @@ export function FileActionsMenu({
     onClose();
   }
 
+  // 菜单首次渲染时使用 anchor 位置，然后通过 useLayoutEffect 调整
+  // 这样避免了位置跳动
+  const effectivePosition = position ?? anchor;
+
   return (
     <div
       className="fixed inset-0 z-50"
@@ -146,8 +146,12 @@ export function FileActionsMenu({
         onContextMenu={(event) => event.preventDefault()}
         className="absolute max-h-[calc(100vh-24px)] w-[236px] overflow-auto rounded-[16px] border border-line-strong/80 bg-surface-alt shadow-floating backdrop-blur"
         style={{
-          left: `${position.x}px`,
-          top: `${position.y}px`,
+          left: `${effectivePosition.x}px`,
+          top: `${effectivePosition.y}px`,
+          // 使用 opacity 和 transform 防止首次渲染时可见跳动
+          opacity: position ? 1 : 0,
+          transform: position ? 'none' : 'scale(0.95)',
+          transition: 'opacity 150ms ease-out, transform 150ms ease-out',
         }}
       >
         <div className="border-b border-border bg-canvas/90 px-3 py-3">

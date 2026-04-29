@@ -472,8 +472,9 @@ export function FolderTree({
             aria-label={`Open actions for ${item.name}`}
             onClick={(event) => {
               const rect = event.currentTarget.getBoundingClientRect();
+              // 菜单宽度 236px，在按钮左侧显示，留 8px 间距
               onOpenItemMenu(item, {
-                x: rect.right - 280,
+                x: Math.max(12, rect.left - 236 - 8),
                 y: rect.bottom + 8,
               });
             }}
